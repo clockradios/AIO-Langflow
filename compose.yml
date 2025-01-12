@@ -18,7 +18,7 @@ services:
       - LANGFLOW_SECRET_KEY=${LANGFLOW_SECRET_KEY}
       - LANGFLOW_NEW_USER_IS_ACTIVE=${LANGFLOW_NEW_USER_IS_ACTIVE}
     volumes:
-      - langflow-data:/app/langflow
+      - ./langflow-data:/app/langflow
 
   postgres:
     image: postgres:16
@@ -30,7 +30,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - langflow-postgres:/var/lib/postgresql/data
+      - ./langflow-postgres:/var/lib/postgresql/data
 
   vector:
     hostname: vector
@@ -45,7 +45,7 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=${VECTOR_POSTGRES_HOST_AUTH_METHOD}
     volumes:
      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-     - vector-postgres:/var/lib/postgresql/data
+     - ./vector-postgres:/var/lib/postgresql/data
 
   tunnel:
     container_name: cloudflared-tunnel
@@ -55,7 +55,7 @@ services:
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
 
-volumes:
-  langflow-postgres:
-  vector-postgres:
-  langflow-data:
+# volumes:
+#   langflow-postgres:
+#   vector-postgres:
+#   langflow-data:

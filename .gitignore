@@ -1,1 +1,4 @@
 .env
+langflow-data/
+langflow-postgres/
+vector-postgres/
