@@ -1,0 +1,61 @@
+services:
+  langflow:
+    image: langflowai/langflow:latest # or another version tag on https://hub.docker.com/r/langflowai/langflow 
+    pull_policy: always               # set to 'always' when using 'latest' image
+    restart: always
+    ports:
+      - "7860:7860"
+    depends_on:
+      - postgres
+    environment:
+      - LANGFLOW_DATABASE_URL=${LANGFLOW_DATABASE_URL}
+      - VECTOR_DB_URL=${VECTOR_DB_URL}
+      - LANGFLOW_MAX_FILE_SIZE_UPLOAD=${LANGFLOW_MAX_FILE_SIZE_UPLOAD}
+      - LANGFLOW_LOG_LEVEL=${LANGFLOW_LOG_LEVEL}
+      - LANGFLOW_AUTO_LOGIN=${LANGFLOW_AUTO_LOGIN}
+      - LANGFLOW_SUPERUSER=${LANGFLOW_SUPERUSER}
+      - LANGFLOW_SUPERUSER_PASSWORD=${LANGFLOW_SUPERUSER_PASSWORD}
+      - LANGFLOW_SECRET_KEY=${LANGFLOW_SECRET_KEY}
+      - LANGFLOW_NEW_USER_IS_ACTIVE=${LANGFLOW_NEW_USER_IS_ACTIVE}
+    volumes:
+      - langflow-data:/app/langflow
+
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: ${LANGFLOW_POSTGRES_DB}
+      POSTGRES_USER: ${LANGFLOW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${LANGFLOW_POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - langflow-postgres:/var/lib/postgresql/data
+
+  vector:
+    hostname: vector
+    image: ankane/pgvector
+    ports:
+     - "5555:5432"
+    restart: always
+    environment:
+      - POSTGRES_DB=${VECTOR_POSTGRES_DB}
+      - POSTGRES_USER=${VECTOR_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${VECTOR_POSTGRES_PASSWORD}
+      - POSTGRES_HOST_AUTH_METHOD=${VECTOR_POSTGRES_HOST_AUTH_METHOD}
+    volumes:
+     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+     - vector-postgres:/var/lib/postgresql/data
+
+  tunnel:
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+
+volumes:
+  langflow-postgres:
+  vector-postgres:
+  langflow-data:
